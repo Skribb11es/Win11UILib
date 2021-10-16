@@ -745,3 +745,4 @@ Win11Lib.createMenu = function(name)
   end
   return options
 end
+return Win11Lib

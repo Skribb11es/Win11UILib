@@ -5,7 +5,56 @@ Win11Lib.flags = {}
 Win11Lib.flags.toggles = {}
 Win11Lib.flags.dropdownToggles = {}
 
-Win11Lib.createMenu = function(name, bind, menuButtons)
+Win11Lib.createMenu = function(name, bind, menuButtons, sizeX, sizeY, usericonId, userIconText, userIconSubText)
+  if sizeX < 800 then
+    sizeX = 800
+  end
+  if sizeY < 500 then
+    sizeY = 500
+  end
+
+  local menu = {}
+
+  menu.Drag = function(frame, hold)
+    if not hold then hold = frame end
+    local dragging
+    local dragInput
+    local dragStart
+    local startPos
+
+    local function update(input)
+        local delta = input.Position - dragStart
+        frame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+    end
+
+    hold.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            dragging = true
+            dragStart = input.Position
+            startPos = frame.Position
+
+            input.Changed:Connect(function()
+                if input.UserInputState == Enum.UserInputState.End then
+                    dragging = false
+                end
+            end)
+        end
+    end)
+
+    frame.InputChanged:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseMovement then
+            dragInput = input
+        end
+    end)
+
+    game:GetService("UserInputService").InputChanged:Connect(function(input)
+        if input == dragInput and dragging then
+            update(input)
+        end
+    end)
+  end
+
+
   local container = Instance.new("ScreenGui")
   local mainOutline = Instance.new("ImageLabel")
   local main = Instance.new("ImageLabel")
@@ -14,17 +63,28 @@ Win11Lib.createMenu = function(name, bind, menuButtons)
   local sideBarContainer = Instance.new("ScrollingFrame")
   local settingContainers = Instance.new("Folder")
   local UIListLayout_2 = Instance.new("UIListLayout")
+  local topBar = Instance.new("Frame")
+  local menuName = Instance.new("TextLabel")
 
   container.Name = "container"
   container.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
 
+  topBar.Name = "topBar"
+  topBar.Parent = container
+  topBar.AnchorPoint = Vector2.new(0.5, 0)
+  topBar.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+  topBar.BackgroundTransparency = 1.000
+  topBar.BorderSizePixel = 0
+  topBar.Position = UDim2.new(0.5, 0, 0.2, 0)
+  topBar.Size = UDim2.new(0, sizeX, 0, 27)
+
   mainOutline.Name = "mainOutline"
-  mainOutline.Parent = container
-  mainOutline.AnchorPoint = Vector2.new(0.5, 0.5)
+  mainOutline.Parent = topBar
+  mainOutline.AnchorPoint = Vector2.new(0.5, 0)
   mainOutline.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
   mainOutline.BackgroundTransparency = 1.000
-  mainOutline.Position = UDim2.new(0.5, 0, 0.5, 0)
-  mainOutline.Size = UDim2.new(0, 1202, 0, 602)
+  mainOutline.Position = UDim2.new(0.5, 0, 0, 0)
+  mainOutline.Size = UDim2.new(1, 0, 0, sizeY)
   mainOutline.ZIndex = 0
   mainOutline.Image = "rbxassetid://3570695787"
   mainOutline.ImageColor3 = Color3.fromRGB(49, 48, 51)
@@ -58,7 +118,7 @@ Win11Lib.createMenu = function(name, bind, menuButtons)
   windowName.Position = UDim2.new(0.200000003, 1, 0.0500000007, 0)
   windowName.Size = UDim2.new(0, 200, 0, 50)
   windowName.Font = Enum.Font.SourceSansSemibold
-  windowName.Text = name
+  windowName.Text = ""
   windowName.TextColor3 = Color3.fromRGB(255, 255, 255)
   windowName.TextSize = 24.000
   windowName.TextStrokeColor3 = Color3.fromRGB(255, 255, 255)
@@ -67,14 +127,14 @@ Win11Lib.createMenu = function(name, bind, menuButtons)
   sideBarContainer.Name = "sideBarContainer"
   sideBarContainer.Parent = main
   sideBarContainer.Active = true
-  sideBarContainer.AnchorPoint = Vector2.new(0, 0.5)
+  sideBarContainer.AnchorPoint = Vector2.new(0, 1)
   sideBarContainer.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
   sideBarContainer.BackgroundTransparency = 1.000
   sideBarContainer.BorderSizePixel = 0
-  sideBarContainer.Position = UDim2.new(0, 0, 0.5, 0)
-  sideBarContainer.Size = UDim2.new(0.200000003, 0, 1, -22)
+  sideBarContainer.Position = UDim2.new(0, 0, 1, 0)
+  sideBarContainer.Size = UDim2.new(0.2, 0, 0.775, 0)
   sideBarContainer.BottomImage = ""
-  sideBarContainer.CanvasSize = UDim2.new(0, 0, 1, -22)
+  sideBarContainer.CanvasSize = UDim2.new(0.2, 0, 0.775, 0)
   sideBarContainer.MidImage = ""
   sideBarContainer.TopImage = ""
 
@@ -85,6 +145,20 @@ Win11Lib.createMenu = function(name, bind, menuButtons)
   UIListLayout_2.HorizontalAlignment = Enum.HorizontalAlignment.Center
   UIListLayout_2.SortOrder = Enum.SortOrder.LayoutOrder
   UIListLayout_2.Padding = UDim.new(0, 4)
+
+  menuName.Name = "menuName"
+  menuName.Parent = mainUIAccessories
+  menuName.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+  menuName.BackgroundTransparency = 1.000
+  menuName.Position = UDim2.new(0, 16, 0, 0)
+  menuName.Size = UDim2.new(0, 200, 0, 50)
+  menuName.Font = Enum.Font.SourceSans
+  menuName.Text = name
+  menuName.TextColor3 = Color3.fromRGB(255, 255, 255)
+  menuName.TextSize = 14.000
+  menuName.TextXAlignment = Enum.TextXAlignment.Left
+
+  menu.Drag(topBar)
 
   local UIS = game:GetService("UserInputService")
   UIS.InputBegan:Connect(function(key, gp)
@@ -99,16 +173,12 @@ Win11Lib.createMenu = function(name, bind, menuButtons)
     local sideCover = Instance.new("Frame")
     local buttonFullScreen = Instance.new("TextButton")
     local square = Instance.new("Frame")
-    local X = Instance.new("Frame")
-    local rightCrossBar = Instance.new("Frame")
-    local leftCrossBar = Instance.new("Frame")
     local buttonMinimize = Instance.new("TextButton")
     local line = Instance.new("Frame")
-
-    --Properties:
+    local X = Instance.new("TextLabel")
 
     buttonClose.Name = "buttonClose"
-    buttonClose.Parent = main
+    buttonClose.Parent = mainUIAccessories
     buttonClose.Active = false
     buttonClose.AnchorPoint = Vector2.new(1, 0)
     buttonClose.BackgroundColor3 = Color3.fromRGB(32, 32, 32)
@@ -146,9 +216,9 @@ Win11Lib.createMenu = function(name, bind, menuButtons)
     buttonFullScreen.Size = UDim2.new(0, 46, 0, 27)
     buttonFullScreen.Font = Enum.Font.SourceSans
     buttonFullScreen.Text = ""
-    buttonFullScreen.AutoButtonColor = false
     buttonFullScreen.TextColor3 = Color3.fromRGB(0, 0, 0)
     buttonFullScreen.TextSize = 14.000
+    buttonFullScreen.AutoButtonColor = false
 
     square.Name = "square"
     square.Parent = buttonFullScreen
@@ -157,34 +227,6 @@ Win11Lib.createMenu = function(name, bind, menuButtons)
     square.BorderColor3 = Color3.fromRGB(105, 105, 105)
     square.Position = UDim2.new(0.5, 0, 0.5, 0)
     square.Size = UDim2.new(0, 9, 0, 9)
-
-    X.Name = "X"
-    X.Parent = buttonClose
-    X.AnchorPoint = Vector2.new(0.5, 0.5)
-    X.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-    X.BackgroundTransparency = 1.000
-    X.Position = UDim2.new(0.5, 0, 0.5, 0)
-    X.Size = UDim2.new(0, 10, 0, 10)
-
-    rightCrossBar.Name = "rightCrossBar"
-    rightCrossBar.Parent = X
-    rightCrossBar.AnchorPoint = Vector2.new(0.5, 0.5)
-    rightCrossBar.BackgroundColor3 = Color3.fromRGB(105, 105, 105)
-    rightCrossBar.BorderColor3 = Color3.fromRGB(48, 48, 48)
-    rightCrossBar.BorderSizePixel = 0
-    rightCrossBar.Position = UDim2.new(0.5, 0, 0.5, 0)
-    rightCrossBar.Rotation = 45.000
-    rightCrossBar.Size = UDim2.new(0, 1, 0, 14)
-
-    leftCrossBar.Name = "leftCrossBar"
-    leftCrossBar.Parent = X
-    leftCrossBar.AnchorPoint = Vector2.new(0.5, 0.5)
-    leftCrossBar.BackgroundColor3 = Color3.fromRGB(105, 105, 105)
-    leftCrossBar.BorderColor3 = Color3.fromRGB(48, 48, 48)
-    leftCrossBar.BorderSizePixel = 0
-    leftCrossBar.Position = UDim2.new(0.5, -1, 0.5, 0)
-    leftCrossBar.Rotation = -45.000
-    leftCrossBar.Size = UDim2.new(0, 1, 0, 14)
 
     buttonMinimize.Name = "buttonMinimize"
     buttonMinimize.Parent = buttonClose
@@ -195,9 +237,9 @@ Win11Lib.createMenu = function(name, bind, menuButtons)
     buttonMinimize.Size = UDim2.new(0, 46, 0, 27)
     buttonMinimize.Font = Enum.Font.SourceSans
     buttonMinimize.Text = ""
-    buttonMinimize.AutoButtonColor = false
     buttonMinimize.TextColor3 = Color3.fromRGB(0, 0, 0)
     buttonMinimize.TextSize = 14.000
+    buttonMinimize.AutoButtonColor = false
 
     line.Name = "line"
     line.Parent = buttonMinimize
@@ -208,20 +250,32 @@ Win11Lib.createMenu = function(name, bind, menuButtons)
     line.Position = UDim2.new(0.5, 0, 0.5, 0)
     line.Size = UDim2.new(0, 10, 0, 1)
 
+    X.Name = "X"
+    X.Parent = buttonClose
+    X.AnchorPoint = Vector2.new(0.5, 0.5)
+    X.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+    X.BackgroundTransparency = 1.000
+    X.Position = UDim2.new(0.5, 0, 0.5, -2)
+    X.Size = UDim2.new(0, 22, 0, 22)
+    X.Font = Enum.Font.SciFi
+    X.Text = "x"
+    X.TextColor3 = Color3.fromRGB(105, 105, 105)
+    X.TextScaled = true
+    X.TextSize = 50.000
+    X.TextWrapped = true
+
     --close button shit
     buttonClose.MouseEnter:Connect(function()
       bottomCover.BackgroundColor3 = Color3.fromRGB(255,0,0)
       sideCover.BackgroundColor3 = Color3.fromRGB(255,0,0)
       buttonClose.ImageColor3 = Color3.fromRGB(255,0,0)
-      rightCrossBar.BackgroundColor3 = Color3.fromRGB(255,255,255)
-      leftCrossBar.BackgroundColor3 = Color3.fromRGB(255,255,255)
+      X.TextColor3 = Color3.fromRGB(255,255,255)
     end)
     buttonClose.MouseLeave:Connect(function()
       bottomCover.BackgroundColor3 = Color3.fromRGB(32,32,32)
       sideCover.BackgroundColor3 = Color3.fromRGB(32,32,32)
       buttonClose.ImageColor3 = Color3.fromRGB(32,32,32)
-      rightCrossBar.BackgroundColor3 = Color3.fromRGB(105,105,105)
-      leftCrossBar.BackgroundColor3 = Color3.fromRGB(105,105,105)
+      X.TextColor3 = Color3.fromRGB(105,105,105)
     end)
     buttonClose.MouseButton1Down:Connect(function()
       bottomCover.BackgroundColor3 = Color3.fromRGB(255,175,175)
@@ -248,10 +302,13 @@ Win11Lib.createMenu = function(name, bind, menuButtons)
       square.BackgroundColor3 = Color3.fromRGB(48,48,48)
     end)
     buttonFullScreen.MouseButton1Click:Connect(function()
-      if mainOutline.Size.X.Offset ~= game:GetService("Workspace").CurrentCamera.ViewportSize.X then
-        mainOutline.Size = UDim2.new(0,game:GetService("Workspace").CurrentCamera.ViewportSize.X,0,game:GetService("Workspace").CurrentCamera.ViewportSize.Y)
+      if topBar.Size.X.Offset ~= game:GetService("Workspace").CurrentCamera.ViewportSize.X then
+        topBar.Position = UDim2.new(0.5,0,0,0)
+        topBar.Size = UDim2.new(0,game:GetService("Workspace").CurrentCamera.ViewportSize.X,0,27)
+        mainOutline.Size = UDim2.new(1,0,0,game:GetService("Workspace").CurrentCamera.ViewportSize.Y)
       else
-        mainOutline.Size = UDim2.new(0,1202,0,602)
+        topBar.Size = UDim2.new(0,1202,0,27)
+        mainOutline.Size = UDim2.new(1,0,0,602)
       end
     end)
 
@@ -273,8 +330,65 @@ Win11Lib.createMenu = function(name, bind, menuButtons)
     buttonMinimize.MouseButton1Click:Connect(function()
       mainOutline.Visible = false
     end)
-
   end
+
+
+  --user for displaying the usericon
+  local userIconCover = Instance.new("ImageLabel")
+  local icon = Instance.new("ImageLabel")
+  local name = Instance.new("TextLabel")
+  local underName = Instance.new("TextLabel")
+
+  userIconCover.Name = "userIconCover"
+  userIconCover.Parent = mainUIAccessories
+  userIconCover.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+  userIconCover.BackgroundTransparency = 1.000
+  userIconCover.BorderSizePixel = 0
+  userIconCover.Position = UDim2.new(0, 13, 0, 54)
+  userIconCover.Size = UDim2.new(0.055, 0, 0, 66)
+  userIconCover.ZIndex = 2
+  userIconCover.Image = "http://www.roblox.com/asset/?id=6835969515"
+  userIconCover.ImageColor3 = Color3.fromRGB(32, 32, 32)
+
+  icon.Parent = userIconCover
+  icon.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+  icon.BackgroundTransparency = 1.000
+  icon.Size = UDim2.new(1, 0, 1, 0)
+  icon.AnchorPoint = Vector2.new(0.5,0.5)
+  icon.Position = UDim2.new(0.5,0,0.5,0)
+  icon.Image = game.Players:GetUserThumbnailAsync(game.Players.LocalPlayer.UserId, Enum.ThumbnailType.HeadShot, Enum.ThumbnailSize.Size420x420)
+
+  name.Name = "name"
+  name.Parent = userIconCover
+  name.AnchorPoint = Vector2.new(0,0.5)
+  name.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+  name.BackgroundTransparency = 1.000
+  name.Position = UDim2.new(1, 6, .375, 0)
+  name.Size = UDim2.new(0, 200, 0, 50)
+  name.Font = Enum.Font.SourceSansSemibold
+  name.Text = ""
+  name.TextColor3 = Color3.fromRGB(255, 255, 255)
+  name.TextSize = 24.000
+  name.TextXAlignment = Enum.TextXAlignment.Left
+
+  underName.Name = "gameName"
+  underName.Parent = userIconCover
+  underName.AnchorPoint = Vector2.new(0, 0.5)
+  underName.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+  underName.BackgroundTransparency = 1.000
+  underName.Position = UDim2.new(1, 6, 0.625, 0)
+  underName.Size = UDim2.new(0, 200, 0, 50)
+  underName.Font = Enum.Font.SourceSans
+  underName.Text = ""
+  underName.TextColor3 = Color3.fromRGB(170, 170, 170)
+  underName.TextSize = 16.000
+  underName.TextXAlignment = Enum.TextXAlignment.Left
+
+  userIconCover.Changed:Connect(function(value)
+    if value == "AbsoluteSize" then
+      userIconCover.Size = UDim2.new(0.055, 0, 0, userIconCover.AbsoluteSize.X)
+    end
+  end)
 
   local menu = {}
 
@@ -298,7 +412,8 @@ Win11Lib.createMenu = function(name, bind, menuButtons)
       end
     end
 
-    if defaultTab then  Win11Lib.tabs[flag] = enabled else  Win11Lib.tabs[flag] = false end
+    if defaultTab then Win11Lib.tabs[flag] = enabled else Win11Lib.tabs[flag] = false end
+    if Win11Lib.tabs[flag] == true then windowName.Text = text end
 
     Win11Lib.tabs.funcs[flag] = function()
       print(Win11Lib.tabs[flag])
@@ -388,6 +503,7 @@ Win11Lib.createMenu = function(name, bind, menuButtons)
         if v == true then
           Win11Lib.tabs[i] = false
           Win11Lib.tabs[flag] = true
+          windowName.Text = text
           settingContainer.Visible =  Win11Lib.tabs[flag]
           tabSelected.Visible = Win11Lib.tabs[flag]
           Win11Lib.tabs.funcs[i]()
@@ -397,13 +513,14 @@ Win11Lib.createMenu = function(name, bind, menuButtons)
 
     local options = {}
 
-    options.addButton = function(text, func)
+    options.addButton = function(text, descText, func)
       local button = Instance.new("ImageLabel")
       local outline_3 = Instance.new("ImageLabel")
       local TextLabel_3 = Instance.new("TextLabel")
       local button_2 = Instance.new("ImageButton")
       local Frame = Instance.new("ImageLabel")
       local TextLabel_4 = Instance.new("TextLabel")
+
       settingContainer.CanvasSize += UDim2.new(0, 0, 0, 71)
 
       button.Name = "button"
@@ -490,6 +607,29 @@ Win11Lib.createMenu = function(name, bind, menuButtons)
       TextLabel_4.TextColor3 = Color3.fromRGB(255, 255, 255)
       TextLabel_4.TextSize = 18.000
 
+      --option description shit
+      local description = Instance.new("TextLabel")
+      description.Name = "description"
+      description.Parent = button
+      description.AnchorPoint = Vector2.new(0, 0.5)
+      description.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+      description.BackgroundTransparency = 1.000
+      description.BorderSizePixel = 0
+      description.Position = UDim2.new(0, 17, 0.625, 0)
+      description.Size = UDim2.new(0, 200, 0, 50)
+      description.ZIndex = 3
+      description.Font = Enum.Font.SourceSans
+      description.TextColor3 = Color3.fromRGB(170, 170, 170)
+      description.TextSize = 14.000
+      description.TextXAlignment = Enum.TextXAlignment.Left
+      description.Visible = false
+
+      if descText and descText ~= "" then
+        description.Text = descText
+        description.Visible = true
+        TextLabel_3.Position = UDim2.new(0, 17, 0.375, 0)
+      end
+
     	button_2.MouseEnter:Connect(function()
     		button_2.Frame.ImageColor3 = Color3.fromRGB(63,63,63)
     	end)
@@ -509,7 +649,7 @@ Win11Lib.createMenu = function(name, bind, menuButtons)
     	button_2.MouseButton1Click:Connect(func)
     end
 
-    options.addSlider = function(text, flag, min, max, precise, iconId, func)
+    options.addSlider = function(text, flag, min, max, precise, descText, iconId, func)
       local slider = Instance.new("ImageLabel")
       local outline = Instance.new("ImageLabel")
       local TextLabel = Instance.new("TextLabel")
@@ -643,6 +783,29 @@ Win11Lib.createMenu = function(name, bind, menuButtons)
       icon.ZIndex = 3
       icon.Image = ("rbxthumb://type=Asset&id=" .. tostring(iconId) .. "&w=420&h=420")
 
+      --option description shit
+      local description = Instance.new("TextLabel")
+      description.Name = "description"
+      description.Parent = slider
+      description.AnchorPoint = Vector2.new(0, 0.5)
+      description.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+      description.BackgroundTransparency = 1.000
+      description.BorderSizePixel = 0
+      description.Position = UDim2.new(0, 17, 0.625, 0)
+      description.Size = UDim2.new(0, 200, 0, 50)
+      description.ZIndex = 3
+      description.Font = Enum.Font.SourceSans
+      description.TextColor3 = Color3.fromRGB(170, 170, 170)
+      description.TextSize = 14.000
+      description.TextXAlignment = Enum.TextXAlignment.Left
+      description.Visible = false
+
+      if descText and descText ~= "" then
+        description.Text = descText
+        description.Visible = true
+        TextLabel.Position = UDim2.new(0, 17, 0.375, 0)
+      end
+
     	local mouse = game.Players.LocalPlayer:GetMouse()
     	local uis = game:GetService("UserInputService")
     	local isDown = false
@@ -685,7 +848,7 @@ Win11Lib.createMenu = function(name, bind, menuButtons)
     	end)
     end
 
-    options.addDropdown = function(text)
+    options.addDropdown = function(text, descText)
       local dropdown = Instance.new("ImageLabel")
       local dropdownBody = Instance.new("ImageButton")
       local sectionContainer = Instance.new("Frame")
@@ -701,7 +864,7 @@ Win11Lib.createMenu = function(name, bind, menuButtons)
       dropdown.BackgroundTransparency = 1.000
       dropdown.BorderSizePixel = 45
       dropdown.Position = UDim2.new(0.5, -1, 0.5, 0)
-      dropdown.Size = UDim2.new(1, 0, 0, 68)
+      dropdown.Size = UDim2.new(1, 0, 0, 70)
       dropdown.ZIndex = 2
       dropdown.Image = "rbxassetid://3570695787"
       dropdown.ImageColor3 = Color3.fromRGB(29, 29, 29)
@@ -761,6 +924,29 @@ Win11Lib.createMenu = function(name, bind, menuButtons)
       TextLabel_7.TextSize = 18.000
       TextLabel_7.TextXAlignment = Enum.TextXAlignment.Left
 
+      --option description shit
+      local description = Instance.new("TextLabel")
+      description.Name = "description"
+      description.Parent = dropdown
+      description.AnchorPoint = Vector2.new(0, 0.5)
+      description.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+      description.BackgroundTransparency = 1.000
+      description.BorderSizePixel = 0
+      description.Position = UDim2.new(0, 17, 0, 43)
+      description.Size = UDim2.new(0, 200, 0, 50)
+      description.ZIndex = 3
+      description.Font = Enum.Font.SourceSans
+      description.TextColor3 = Color3.fromRGB(170, 170, 170)
+      description.TextSize = 14.000
+      description.TextXAlignment = Enum.TextXAlignment.Left
+      description.Visible = false
+
+      if descText and descText ~= "" then
+        description.Text = descText
+        description.Visible = true
+        TextLabel_7.Position = UDim2.new(0, 17, 0, 0)
+      end
+
     	local toggle = false
 
     	dropdownBody.MouseButton1Click:Connect(function()
@@ -772,7 +958,7 @@ Win11Lib.createMenu = function(name, bind, menuButtons)
     		else
     			dropdownBody.chevron.Rotation = 0
     			settingContainer.CanvasSize = UDim2.new(0,0,0,(settingContainer.CanvasSize.Y.Offset - dropdown.Size.Y.Offset)+69)
-    			dropdown.Size = UDim2.new(1,0,0,68)
+    			dropdown.Size = UDim2.new(1,0,0,70)
     		end
     	end)
 
@@ -855,7 +1041,7 @@ Win11Lib.createMenu = function(name, bind, menuButtons)
       return dropdownOptions
     end
 
-    options.addToggle = function(text, flag, func)
+    options.addToggle = function(text, flag, descText, func)
       Win11Lib.flags.toggles[flag] = false
       local callFunctionToggle = false
       if func then
@@ -951,6 +1137,30 @@ Win11Lib.createMenu = function(name, bind, menuButtons)
       circle_2.ZIndex = 3
       circle_2.Image = "rbxassetid://3570695787"
       circle_2.ImageColor3 = Color3.fromRGB(206, 206, 206)
+
+      --option description shit
+      local description = Instance.new("TextLabel")
+      description.Name = "description"
+      description.Parent = toggle
+      description.AnchorPoint = Vector2.new(0, 0.5)
+      description.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+      description.BackgroundTransparency = 1.000
+      description.BorderSizePixel = 0
+      description.Position = UDim2.new(0, 17, 0.625, 0)
+      description.Size = UDim2.new(0, 200, 0, 50)
+      description.ZIndex = 3
+      description.Font = Enum.Font.SourceSans
+      description.TextColor3 = Color3.fromRGB(170, 170, 170)
+      description.TextSize = 14.000
+      description.TextXAlignment = Enum.TextXAlignment.Left
+      description.Visible = false
+
+      if descText and descText ~= "" then
+        description.Text = descText
+        description.Visible = true
+        TextLabel_2.Position = UDim2.new(0, 17, 0.375, 0)
+      end
+
       local function toggleF()
         Win11Lib.flags.toggles[flag] = not Win11Lib.flags.toggles[flag]
         if callFunctionToggle then func(Win11Lib.flags.toggles[flag]) end
@@ -974,6 +1184,12 @@ Win11Lib.createMenu = function(name, bind, menuButtons)
 
     return options
   end
+
+  if usericonId ~= "" then
+    icon.Image = ("rbxthumb://type=Asset&id=" .. tostring(usericonId) .. "&w=420&h=420")
+  end
+  name.Text = userIconText
+  underName.Text = userIconSubText
 
   return menu
 end

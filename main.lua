@@ -5,6 +5,9 @@ Win11Lib.flags = {}
 Win11Lib.flags.toggles = {}
 Win11Lib.flags.dropdownToggles = {}
 
+local mouse = game.Players.LocalPlayer:GetMouse()
+local uis = game:GetService("UserInputService")
+
 Win11Lib.createMenu = function(name, bind, menuButtons, sizeX, sizeY, usericonId, userIconText, userIconSubText)
   if sizeX < 800 then
     sizeX = 800
@@ -71,19 +74,19 @@ Win11Lib.createMenu = function(name, bind, menuButtons, sizeX, sizeY, usericonId
 
   topBar.Name = "topBar"
   topBar.Parent = container
-  topBar.AnchorPoint = Vector2.new(0.5, 0)
+  topBar.AnchorPoint = Vector2.new(0, 0)
   topBar.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
   topBar.BackgroundTransparency = 1.000
   topBar.BorderSizePixel = 0
-  topBar.Position = UDim2.new(0.5, 0, 0.2, 0)
+  topBar.Position = UDim2.new(0.2, 0, 0.2, 0)
   topBar.Size = UDim2.new(0, sizeX, 0, 27)
 
   mainOutline.Name = "mainOutline"
   mainOutline.Parent = topBar
-  mainOutline.AnchorPoint = Vector2.new(0.5, 0)
+  mainOutline.AnchorPoint = Vector2.new(0, 0)
   mainOutline.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
   mainOutline.BackgroundTransparency = 1.000
-  mainOutline.Position = UDim2.new(0.5, 0, 0, 0)
+  mainOutline.Position = UDim2.new(0, 0, 0, 0)
   mainOutline.Size = UDim2.new(1, 0, 0, sizeY)
   mainOutline.ZIndex = 0
   mainOutline.Image = "rbxassetid://3570695787"
@@ -167,6 +170,7 @@ Win11Lib.createMenu = function(name, bind, menuButtons, sizeX, sizeY, usericonId
     end
   end)
 
+  -- menu button shit
   if menuButtons == true then
     local buttonClose = Instance.new("ImageButton")
     local bottomCover = Instance.new("Frame")
@@ -301,9 +305,9 @@ Win11Lib.createMenu = function(name, bind, menuButtons, sizeX, sizeY, usericonId
       buttonFullScreen.BackgroundColor3 = Color3.fromRGB(48,48,48)
       square.BackgroundColor3 = Color3.fromRGB(48,48,48)
     end)
-    buttonFullScreen.MouseButton1Click:Connect(function()
+    buttonFullScreen.MouseButton1Click :Connect(function()
       if topBar.Size.X.Offset ~= game:GetService("Workspace").CurrentCamera.ViewportSize.X then
-        topBar.Position = UDim2.new(0.5,0,0,0)
+        topBar.Position = UDim2.new(0,0,0,0)
         topBar.Size = UDim2.new(0,game:GetService("Workspace").CurrentCamera.ViewportSize.X,0,27)
         mainOutline.Size = UDim2.new(1,0,0,game:GetService("Workspace").CurrentCamera.ViewportSize.Y)
       else
@@ -332,8 +336,79 @@ Win11Lib.createMenu = function(name, bind, menuButtons, sizeX, sizeY, usericonId
     end)
   end
 
+  local resizeButton = Instance.new("ImageButton")
+  local imgButtonCut = Instance.new("ImageButton")
 
-  --user for displaying the usericon
+  --used for the resize option in the bottom right
+  resizeButton.Name = "resizeButton"
+  resizeButton.Parent = mainUIAccessories
+  resizeButton.AnchorPoint = Vector2.new(1, 1)
+  resizeButton.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+  resizeButton.BackgroundTransparency = 1.000
+  resizeButton.Position = UDim2.new(1, -8, 1, -8)
+  resizeButton.Size = UDim2.new(0, 15, 0, 15)
+  resizeButton.ZIndex = 2
+  resizeButton.Image = "rbxassetid://3570695787"
+  resizeButton.ScaleType = Enum.ScaleType.Slice
+  resizeButton.SliceCenter = Rect.new(100, 100, 100, 100)
+  resizeButton.SliceScale = 0.020
+  resizeButton.ClipsDescendants = true
+
+
+  imgButtonCut.Parent = resizeButton
+  imgButtonCut.AutoButtonColor = false
+  imgButtonCut.AnchorPoint = Vector2.new(0.5, 1)
+  imgButtonCut.BackgroundColor3 = Color3.fromRGB(32, 32, 32)
+  imgButtonCut.BorderSizePixel = 0
+  imgButtonCut.Position = UDim2.new(0, 0, 1.25, 0)
+  imgButtonCut.Rotation = 45.000
+  imgButtonCut.Size = UDim2.new(1, 0, 2, 0)
+  imgButtonCut.ZIndex = 3
+  imgButtonCut.ImageTransparency = 1.000
+
+  local isResize = false
+
+  resizeButton.MouseButton1Down:Connect(function()
+    if (mouse.X - topBar.AbsolutePosition.X) < 800 then
+      topBar.Size = UDim2.new(0,800, 0, 27)
+    else
+      topBar.Size = UDim2.new(0,(mouse.X - topBar.AbsolutePosition.X)+9, 0, 27)
+    end
+    if (mouse.Y - topBar.AbsolutePosition.Y) < 500 then
+      mainOutline.Size = UDim2.new(1,0,0,500)
+    else
+      mainOutline.Size = UDim2.new(1,0,0,(mouse.Y - topBar.AbsolutePosition.Y)+9)
+    end
+    isResize = true
+  end)
+
+  uis.InputEnded:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 and isResize == true then
+      isResize = false
+    end
+  end)
+
+  mouse.Move:Connect(function()
+    if isResize then
+      if (mouse.X - topBar.AbsolutePosition.X) < 800 then
+        topBar.Size = UDim2.new(0,800, 0, 27)
+      else
+        topBar.Size = UDim2.new(0,(mouse.X - topBar.AbsolutePosition.X)+9, 0, 27)
+      end
+      if (mouse.Y - topBar.AbsolutePosition.Y) < 500 then
+        mainOutline.Size = UDim2.new(1,0,0,500)
+      else
+        mainOutline.Size = UDim2.new(1,0,0,(mouse.Y - topBar.AbsolutePosition.Y)+9)
+      end
+      if (mouse.X - topBar.AbsolutePosition.X) >= 800 and (mouse.Y - topBar.AbsolutePosition.Y) >= 500 then
+        topBar.Size = UDim2.new(0,(mouse.X - topBar.AbsolutePosition.X)+9, 0, 27)
+        mainOutline.Size = UDim2.new(1,0,0,(mouse.Y - topBar.AbsolutePosition.Y)+9)
+      end
+    end
+  end)
+
+
+  --used for displaying the usericon
   local userIconCover = Instance.new("ImageLabel")
   local icon = Instance.new("ImageLabel")
   local name = Instance.new("TextLabel")
@@ -390,6 +465,10 @@ Win11Lib.createMenu = function(name, bind, menuButtons, sizeX, sizeY, usericonId
     end
   end)
 
+  mouse.Move:Connect(function()
+    sideBarContainer.Size = UDim2.new(0.2, 0, .9, -(userIconCover.AbsoluteSize.Y + 4))
+  end)
+
   local menu = {}
 
   menu.destroyUI = function()
@@ -416,24 +495,28 @@ Win11Lib.createMenu = function(name, bind, menuButtons, sizeX, sizeY, usericonId
     if Win11Lib.tabs[flag] == true then windowName.Text = text end
 
     Win11Lib.tabs.funcs[flag] = function()
-      print(Win11Lib.tabs[flag])
       settingContainer.Visible =  Win11Lib.tabs[flag]
       tabSelected.Visible = Win11Lib.tabs[flag]
+      tabButton.ImageTransparency = 1
     end
 
     --makes new tab option on left side
     tabButton.Name = "tabButton"
     tabButton.Parent = sideBarContainer
-    tabButton.AnchorPoint = Vector2.new(0.5, 1)
+    tabButton.AnchorPoint = Vector2.new(0, 1)
     tabButton.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
     tabButton.BackgroundTransparency = 1.000
-    tabButton.Position = UDim2.new(0.5, 0, 0.075000003, 0)
-    tabButton.Size = UDim2.new(0.800000012, 0, 0, 36)
+    tabButton.Position = UDim2.new(0, 16, 0.075000003, 0)
+    tabButton.Size = UDim2.new(.9, 0, 0, 36)
     tabButton.Image = "rbxassetid://3570695787"
     tabButton.ImageColor3 = Color3.fromRGB(45, 45, 45)
     tabButton.ScaleType = Enum.ScaleType.Slice
     tabButton.SliceCenter = Rect.new(100, 100, 100, 100)
     tabButton.SliceScale = 0.060
+
+    if Win11Lib.tabs[flag] == false then
+      tabButton.ImageTransparency = 1
+    end
 
     tabSelected.Name = "tabSelected"
     tabSelected.Parent = tabButton
@@ -496,17 +579,17 @@ Win11Lib.createMenu = function(name, bind, menuButtons, sizeX, sizeY, usericonId
     UIListLayout.SortOrder = Enum.SortOrder.LayoutOrder
     UIListLayout.Padding = UDim.new(0, 3)
 
-
-
     tabButton.MouseButton1Click:Connect(function()
-      for i,v in pairs(Win11Lib.tabs) do
-        if v == true then
+      for i,tabValue in pairs(Win11Lib.tabs) do
+        if tabValue == true then
           Win11Lib.tabs[i] = false
           Win11Lib.tabs[flag] = true
           windowName.Text = text
+          Win11Lib.tabs.funcs[i]()
+          tabButton.ImageTransparency = 0
           settingContainer.Visible =  Win11Lib.tabs[flag]
           tabSelected.Visible = Win11Lib.tabs[flag]
-          Win11Lib.tabs.funcs[i]()
+          break
         end
       end
     end)
@@ -568,11 +651,11 @@ Win11Lib.createMenu = function(name, bind, menuButtons, sizeX, sizeY, usericonId
 
       button_2.Name = "button"
       button_2.Parent = button
-      button_2.AnchorPoint = Vector2.new(0, 0.5)
+      button_2.AnchorPoint = Vector2.new(1, 0.5)
       button_2.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
       button_2.BackgroundTransparency = 1.000
       button_2.BorderSizePixel = 0
-      button_2.Position = UDim2.new(0.808000028, 0, 0.5, 0)
+      button_2.Position = UDim2.new(0.975, 0, 0.5, 0)
       button_2.Size = UDim2.new(0, 130, 0, 32)
       button_2.ZIndex = 3
       button_2.Image = "rbxassetid://3570695787"
@@ -806,8 +889,6 @@ Win11Lib.createMenu = function(name, bind, menuButtons, sizeX, sizeY, usericonId
         TextLabel.Position = UDim2.new(0, 17, 0.375, 0)
       end
 
-    	local mouse = game.Players.LocalPlayer:GetMouse()
-    	local uis = game:GetService("UserInputService")
     	local isDown = false
       local range = (max - min)
       local value
@@ -1190,6 +1271,8 @@ Win11Lib.createMenu = function(name, bind, menuButtons, sizeX, sizeY, usericonId
   end
   name.Text = userIconText
   underName.Text = userIconSubText
+
+  sideBarContainer.Size = UDim2.new(0.2, 0, .9, -(userIconCover.AbsoluteSize.Y + 4))
 
   return menu
 end

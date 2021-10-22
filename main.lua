@@ -370,6 +370,7 @@ Win11Lib.createMenu = function(name, bind, menuButtons, sizeX, sizeY, usericonId
 
   resizeButton.MouseButton1Down:Connect(function()
     if (mouse.X - topBar.AbsolutePosition.X) < 800 then
+
       topBar.Size = UDim2.new(0,800, 0, 27)
     else
       topBar.Size = UDim2.new(0,(mouse.X - topBar.AbsolutePosition.X)+9, 0, 27)
@@ -466,6 +467,8 @@ Win11Lib.createMenu = function(name, bind, menuButtons, sizeX, sizeY, usericonId
   end)
 
   mouse.Move:Connect(function()
+    underName.TextSize = topBar.Size.X.Offset / 100
+    name.TextSize = (topBar.Size.X.Offset / 100) * 2
     sideBarContainer.Size = UDim2.new(0.2, 0, .9, -(userIconCover.AbsoluteSize.Y + 4))
   end)
 
@@ -732,7 +735,7 @@ Win11Lib.createMenu = function(name, bind, menuButtons, sizeX, sizeY, usericonId
     	button_2.MouseButton1Click:Connect(func)
     end
 
-    options.addSlider = function(text, flag, min, max, precise, descText, iconId, func)
+    options.addSlider = function(text, flag, min, max, defaultValue, precise, descText, iconId, func)
       local slider = Instance.new("ImageLabel")
       local outline = Instance.new("ImageLabel")
       local TextLabel = Instance.new("TextLabel")
@@ -927,6 +930,9 @@ Win11Lib.createMenu = function(name, bind, menuButtons, sizeX, sizeY, usericonId
           slider_2.percentLabel.Text = value
     		end
     	end)
+      slider_2.percentLabel.Text = defaultValue
+      slider_2.bar.Size = UDim2.new(0,((defaultValue / range) * slider_2.AbsoluteSize.X),1,0)
+      func(defaultValue)
     end
 
     options.addDropdown = function(text, descText)
@@ -1031,27 +1037,26 @@ Win11Lib.createMenu = function(name, bind, menuButtons, sizeX, sizeY, usericonId
     	local toggle = false
 
     	dropdownBody.MouseButton1Click:Connect(function()
-    		toggle = not toggle
-    		if toggle then
-    			dropdownBody.chevron.Rotation = 90
-    			dropdown.Size = UDim2.new(1,0,0,((#dropdownBody.sectionContainer:GetChildren() - 2) * 57) + 137)
-    			settingContainer.CanvasSize = UDim2.new(0,0,0,((settingContainer.CanvasSize.Y.Offset + dropdown.Size.Y.Offset)-69))
-    		else
-    			dropdownBody.chevron.Rotation = 0
-    			settingContainer.CanvasSize = UDim2.new(0,0,0,(settingContainer.CanvasSize.Y.Offset - dropdown.Size.Y.Offset)+69)
-    			dropdown.Size = UDim2.new(1,0,0,70)
-    		end
-    	end)
+        toggle = not toggle
+        if toggle and (#dropdownBody.sectionContainer:GetChildren() - 1) > -1 then
+          dropdownBody.chevron.Rotation = 90
+          dropdown.Size = UDim2.new(1,0,0,((#dropdownBody.sectionContainer:GetChildren() - 1) * 57) + 80)
+          settingContainer.CanvasSize = UDim2.new(0,0,0,((settingContainer.CanvasSize.Y.Offset + dropdown.Size.Y.Offset)-69))
+        else
+          dropdownBody.chevron.Rotation = 0
+          settingContainer.CanvasSize = UDim2.new(0,0,0,(settingContainer.CanvasSize.Y.Offset - dropdown.Size.Y.Offset)+69)
+          dropdown.Size = UDim2.new(1,0,0,70)
+        end
+      end)
 
       local dropdownOptions = {}
 
-      dropdownOptions.addOption = function(name, flag, func)
+      dropdownOptions.addOption = function(name, flag, defaultValue, func)
         Win11Lib.flags.dropdownToggles[flag] = false
         local callFunctionToggle = false
         if func then
           callFunctionToggle = true
         end
-
 
         local optionContainer = Instance.new("TextButton")
         local disabledCircle = Instance.new("ImageLabel")
@@ -1105,8 +1110,8 @@ Win11Lib.createMenu = function(name, bind, menuButtons, sizeX, sizeY, usericonId
         TextLabel_5.TextSize = 18.000
         TextLabel_5.TextXAlignment = Enum.TextXAlignment.Left
 
-      	optionContainer.MouseButton1Click:Connect(function()
-      		Win11Lib.flags.dropdownToggles[flag] = not Win11Lib.flags.dropdownToggles[flag]
+        local function updateValue()
+          Win11Lib.flags.dropdownToggles[flag] = not Win11Lib.flags.dropdownToggles[flag]
           if callFunctionToggle then func(Win11Lib.flags.dropdownToggles[flag]) end
       		if Win11Lib.flags.dropdownToggles[flag] then
       			optionContainer.disabledCircle.ImageColor3 = Color3.fromRGB(243, 128, 100)
@@ -1117,12 +1122,69 @@ Win11Lib.createMenu = function(name, bind, menuButtons, sizeX, sizeY, usericonId
       			optionContainer.disabledCircle.innerCircle.ImageColor3 = Color3.fromRGB(39, 39, 39)
       			optionContainer.disabledCircle.innerCircle.Size = UDim2.new(1,-2,1,-2)
       		end
-      	end)
+        end
+
+        if defaultValue == true then
+          updateValue()
+        else
+          func(Win11Lib.flags.dropdownToggles[flag])
+        end
+        optionContainer.MouseButton1Click:Connect(updateValue)
+      end
+
+      dropdownOptions.clear = function()
+        for i,v in pairs(sectionContainer:GetChildren()) do
+          if v:IsA("TextButton") then
+            v.Parent = nil
+          end
+        end
+        for i=1, #Win11Lib.flags.dropdownToggles do
+          table.remove(Win11Lib.flags.dropdownToggles, i)
+        end
+        if toggle and (#dropdownBody.sectionContainer:GetChildren() - 1) > -1 then
+    			dropdownBody.chevron.Rotation = 90
+    			dropdown.Size = UDim2.new(1,0,0,((#dropdownBody.sectionContainer:GetChildren() - 1) * 57) + 80)
+    			settingContainer.CanvasSize = UDim2.new(0,0,0,((settingContainer.CanvasSize.Y.Offset + dropdown.Size.Y.Offset)-69))
+    		else
+    			dropdownBody.chevron.Rotation = 0
+    			settingContainer.CanvasSize = UDim2.new(0,0,0,(settingContainer.CanvasSize.Y.Offset - dropdown.Size.Y.Offset)+69)
+    			dropdown.Size = UDim2.new(1,0,0,70)
+    		end
+      end
+
+      dropdownOptions.remove = function(flag)
+        local physicalOption
+        local flagIndex = 0
+        for i,v in pairs(Win11Lib.flags.dropdownToggles) do
+          flagIndex += 1
+          if i == flag then
+            break
+          end
+        end
+
+        if #sectionContainer:GetChildren() == 2 then
+          flagIndex += 1
+        end
+
+        for k,l in pairs(sectionContainer:GetChildren()) do
+          if k == flagIndex then
+            l.Parent = nil
+            if toggle and (#dropdownBody.sectionContainer:GetChildren() - 1) > -1 then
+        			dropdownBody.chevron.Rotation = 90
+        			dropdown.Size = UDim2.new(1,0,0,((#dropdownBody.sectionContainer:GetChildren() - 1) * 57) + 80)
+        			settingContainer.CanvasSize = UDim2.new(0,0,0,((settingContainer.CanvasSize.Y.Offset + dropdown.Size.Y.Offset)-69))
+        		else
+        			dropdownBody.chevron.Rotation = 0
+        			settingContainer.CanvasSize = UDim2.new(0,0,0,(settingContainer.CanvasSize.Y.Offset - dropdown.Size.Y.Offset)+69)
+        			dropdown.Size = UDim2.new(1,0,0,70)
+        		end
+          end
+        end
       end
       return dropdownOptions
     end
 
-    options.addToggle = function(text, flag, descText, func)
+    options.addToggle = function(text, flag, descText, defaultValue, func)
       Win11Lib.flags.toggles[flag] = false
       local callFunctionToggle = false
       if func then
@@ -1259,6 +1321,11 @@ Win11Lib.createMenu = function(name, bind, menuButtons, sizeX, sizeY, usericonId
           parent.ImageColor3 = Color3.fromRGB(158,158,158)
           circle.ImageColor3 = Color3.fromRGB(206,206,206)
         end
+      end
+      if defaultValue == true then
+        toggleF()
+      else
+        func(Win11Lib.flags.toggles[flag])
       end
       toggle_2.MouseButton1Click:Connect(toggleF)
     end

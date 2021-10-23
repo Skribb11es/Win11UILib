@@ -70,7 +70,7 @@ Win11Lib.createMenu = function(name, bind, menuButtons, sizeX, sizeY, usericonId
   local menuName = Instance.new("TextLabel")
 
   container.Name = "container"
-  container.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
+  container.Parent = game.CoreGui
 
   topBar.Name = "topBar"
   topBar.Parent = container
